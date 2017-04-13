@@ -29,5 +29,3 @@ app.get('/', (request, response) => {
 app.get('/json', (request, response) => {
   response.send(orgs)
 })
-
-app.listen(3000)

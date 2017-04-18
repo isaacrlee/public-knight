@@ -1,0 +1,13 @@
+<div>
+    {{#each headers}}
+    <div>
+        <strong>{{@index}}</strong>
+        {{#each this}}
+        <p>{{@key}}. {{this}}</p>
+        {{/each}}
+        {{#each images}}
+        <p>{{@key}}. {{this}}</p>
+        {{/each}}
+    </div>
+    {{/each}}
+</div>

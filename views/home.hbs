@@ -1,10 +1,10 @@
 <div>
     {{#each data}}
     <div>
-        <strong>{{@index}}</strong>
         {{#each this}}
-        <p>{{@key}}. {{this}}</p>
+        <p><strong>{{@key}}:</strong> {{this}}</p>
         {{/each}}    
     </div>
+    <br>
     {{/each}}
 </div>

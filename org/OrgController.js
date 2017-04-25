@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var bodyParser = require('body-parser');
+var request = require('request');
 router.use(bodyParser.urlencoded({ extended: true }));
 
 var Org = require('./Org');
@@ -34,12 +35,65 @@ router.get('/', function (req, res) {
 })
 
 // RETURNS ALL THE ORGANIZATIONS W/TAG IN THE DATABASE
-router.get('/:tag_slug', function (req, res) {
-    // router.get('/:tag_guid', function (req, res) {
+router.get('/tag/:tag_slug', function (req, res) {
     Org.find({ tag_slug: { $eq: req.params.tag_slug } }, function (err, orgs) {
         if (err) return res.status(500).send("There was a problem finding the organizations.");
         res.status(200).send(orgs)
     })
+})
+
+// RETURNS ALL THE ORGANIZATIONS WITHIN RADIUS MILES OF ZIPCODE IN THE DATABASE
+router.get('/zip/:postal_code/:distance/tag/:tag_slug', function (req, res) {
+    // INPUT: postal_code
+    var api = '1ac500S6OXybF1emODD1bUC95DqOi4Yjfbofbhm0fVcUWqgL4UNfOqpU3PIlTHE8';
+    var distance = req.params.distance;
+    var url = 'https://www.zipcodeapi.com/rest/' + api + '/radius.json/'
+    url += req.params.postal_code;
+    url += '/' + distance + '/mile';
+
+    // REQUEST
+
+    request(url, function (error, response, body) {
+        if (error) return res.status(500).send("There was a problem finding nearby zip codes.");
+        var zipCodes = JSON.parse(body).zip_codes;
+        var zipArr = []
+        for (var i = 0; i < zipCodes.length; i++) {
+            zipArr.push(zipCodes[i].zip_code);
+        }
+        var regex = '/' + zipArr.join('|') + '/';
+        // OUTPUT: regex '60660|60659|60712|60645'
+        Org.find({ postal_code: { $regex: regex }, tag_slug: { $eq: req.params.tag_slug } }, function (err, orgs) {
+            if (err) return res.status(500).send("There was a problem finding the organizations.");
+            res.status(200).send(orgs)
+        })
+    });
+})
+
+// RETURNS ALL THE ORGANIZATIONS WITHIN RADIUS MILES OF ZIPCODE IN THE DATABASE W/TAG IN DATABASE
+router.get('/zip/:postal_code/:distance', function (req, res) {
+    // INPUT: postal_code
+    var api = '1ac500S6OXybF1emODD1bUC95DqOi4Yjfbofbhm0fVcUWqgL4UNfOqpU3PIlTHE8';
+    var distance = req.params.distance;
+    var url = 'https://www.zipcodeapi.com/rest/' + api + '/radius.json/'
+    url += req.params.postal_code;
+    url += '/' + distance + '/mile';
+
+    // REQUEST
+
+    request(url, function (error, response, body) {
+        if (error) return res.status(500).send("There was a problem finding nearby zip codes.");
+        var zipCodes = JSON.parse(body).zip_codes;
+        var zipArr = []
+        for (var i = 0; i < zipCodes.length; i++) {
+            zipArr.push(zipCodes[i].zip_code);
+        }
+        var regex = '/' + zipArr.join('|') + '/';
+        // OUTPUT: regex '60660|60659|60712|60645'
+        Org.find({ postal_code: { $regex: regex } }, function (err, orgs) {
+            if (err) return res.status(500).send("There was a problem finding the organizations.");
+            res.status(200).send(orgs)
+        })
+    });
 })
 
 // GETS A SINGLE ORGANIZATION FROM THE DATABASE

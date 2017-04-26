@@ -45,7 +45,7 @@ router.get('/tag/:tag_slug', function (req, res) {
 // RETURNS ALL THE ORGANIZATIONS WITHIN RADIUS MILES OF ZIPCODE IN THE DATABASE
 router.get('/zip/:postal_code/:distance/tag/:tag_slug', function (req, res) {
     // INPUT: postal_code
-    var api = 'ukFaRmgsfj55CHio9qU2krBWnQv7Z8MusrEkOVM4fS9SArhKSbNcDo90eF7eNUIg';
+    var api = '1ac500S6OXybF1emODD1bUC95DqOi4Yjfbofbhm0fVcUWqgL4UNfOqpU3PIlTHE8';
     var distance = req.params.distance;
     var url = 'https://www.zipcodeapi.com/rest/' + api + '/radius.json/'
     url += req.params.postal_code;

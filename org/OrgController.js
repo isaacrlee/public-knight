@@ -34,22 +34,14 @@ router.get('/', function (req, res) {
     })
 })
 
-// RETURNS ALL THE ORGANIZATIONS W/TAG IN THE DATABASE
-router.get('/tag/:tag_slug', function (req, res) {
-    Org.find({ tag_slug: { $eq: req.params.tag_slug } }, function (err, orgs) {
-        if (err) return res.status(500).send("There was a problem finding the organizations.");
-        res.status(200).send(orgs)
-    })
-})
-
 // RETURNS ALL THE ORGANIZATIONS WITHIN RADIUS MILES OF ZIPCODE IN THE DATABASE
-router.get('/zip/:postal_code/:distance/tag/:tag_slug', function (req, res) {
+router.get('/zip/:postal_code/:radius/tag/:tag_slug', function (req, res) {
     // INPUT: postal_code
     var api = 'ukFaRmgsfj55CHio9qU2krBWnQv7Z8MusrEkOVM4fS9SArhKSbNcDo90eF7eNUIg';
-    var distance = req.params.distance;
+    var radius = req.params.radius;
     var url = 'https://www.zipcodeapi.com/rest/' + api + '/radius.json/'
     url += req.params.postal_code;
-    url += '/' + distance + '/mile';
+    url += '/' + radius + '/mile';
 
     // REQUEST
 
@@ -62,7 +54,17 @@ router.get('/zip/:postal_code/:distance/tag/:tag_slug', function (req, res) {
         }
         var regex = '/' + zipArr.join('|') + '/';
         // OUTPUT: regex '60660|60659|60712|60645'
-        Org.find({ postal_code: { $regex: regex }, tag_slug: { $eq: req.params.tag_slug } }, function (err, orgs) {
+        var query = {
+            postal_code: { $regex: regex },
+            tag_slug: { $eq: req.params.tag_slug },
+            avatar_image_url: {
+                $exists: true
+            },
+            mission: {
+                $ne: ""
+            }
+        };
+        Org.find(query, function (err, orgs) {
             if (err) return res.status(500).send("There was a problem finding the organizations.");
             res.status(200).send(orgs)
         })
@@ -70,19 +72,18 @@ router.get('/zip/:postal_code/:distance/tag/:tag_slug', function (req, res) {
 })
 
 // RETURNS ALL THE ORGANIZATIONS WITHIN RADIUS MILES OF ZIPCODE IN THE DATABASE W/TAG IN DATABASE
-router.get('/zip/:postal_code/:distance', function (req, res) {
+router.get('/zip/:postal_code/:radius', function (req, res) {
     // INPUT: postal_code
     var api = 'ukFaRmgsfj55CHio9qU2krBWnQv7Z8MusrEkOVM4fS9SArhKSbNcDo90eF7eNUIg';
-    var distance = req.params.distance;
+    var radius = req.params.radius;
     var url = 'https://www.zipcodeapi.com/rest/' + api + '/radius.json/'
     url += req.params.postal_code;
-    url += '/' + distance + '/mile';
+    url += '/' + radius + '/mile';
 
     // REQUEST
 
     request(url, function (error, response, body) {
         if (error) return res.status(500).send("There was a problem finding nearby zip codes.");
-        console.log(body);
         var zipCodes = JSON.parse(body).zip_codes;
         var zipArr = []
         for (var i = 0; i < zipCodes.length; i++) {
@@ -90,11 +91,20 @@ router.get('/zip/:postal_code/:distance', function (req, res) {
         }
         var regex = '/' + zipArr.join('|') + '/';
         // OUTPUT: regex '60660|60659|60712|60645'
-        Org.find({ postal_code: { $regex: regex } }, function (err, orgs) {
-            if (err) return res.status(500).send("There was a problem finding the organizations.");
-            res.status(200).send(orgs)
-        })
-    });
+        var query = {
+            postal_code: { $regex: regex },
+            avatar_image_url: {
+                $exists: true
+            },
+            mission: {
+                $ne: ""
+            }
+        };
+        Org.find(query, function (err, orgs) {
+                if (err) return res.status(500).send("There was a problem finding the organizations.");
+                res.status(200).send(orgs)
+            })
+        });
 })
 
 // GETS A SINGLE ORGANIZATION FROM THE DATABASE

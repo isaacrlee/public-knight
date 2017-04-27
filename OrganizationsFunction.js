@@ -32,20 +32,20 @@ exports.handler = (event, context, callback) => {
         "nextModule": null // OPTIONAL: the ID of a module to follow this Node JS module
     }
 
-    var customVars = JSON.parse(event.customVars);
-    responseJSON.response = "Here are nearby organizations working to " + customVars.CAMPAIGN + ". Click on any of them to learn more.";
-    if (!customVars.hasOwnProperty("location")) {
-        customVars.location = event.result;
-    }
-    var zip = customVars.location.address.match("\d{5}(?:[-\s]\d{4})?$");
-    var url = "http://public-knight.herokuapp.com/orgs/zip/" + zip + "/10/tag/" + customVars.tag;
+    // responseJSON.response = "Here are nearby organizations working to " + customVars.campaign + ". Click on any of them to learn more.";
+    responseJSON.response = "Here are nearby organizations.";
+    var regex = new RegExp('[ ,]+', 'g');
+    var location = String(JSON.parse(event.customVars).location).split(regex);
+    var zip = location[location.length-2];
+    var url = "http://public-knight.herokuapp.com/orgs/zip/" + zip + "/10/tag/" + JSON.parse(event.customVars).tag;
+    console.log(url);
     request(url, function (error, response, body) {
         if (error) responseJSON.response("There was a problem finding nearby orgniazations.");
         var orgs = JSON.parse(body);
         for (var i = 0; i < orgs.length; i++) {
             responseJSON.cards.push({
                 cardTitle: orgs[i].org_name, // Card Title
-                cardSubtitle: orgs[i].mission.substr(0,50) + "...", // Card Subtitle
+                cardSubtitle: orgs[i].mission.substr(0, 50) + "...", // Card Subtitle
                 cardImage: orgs[i].avatar_image_url, // Source URL for image
                 cardLink: 'https://publicgood.com/org/' + orgs[i].org_slug, // Click through URL
                 buttons: [{
@@ -86,5 +86,5 @@ exports.handler = (event, context, callback) => {
     // ]
 
     // callback to return data to Motion AI (must exist, or bot will not work)
-    callback(null, responseJSON);
+    // callback(null, responseJSON);
 };

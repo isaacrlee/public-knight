@@ -1,6 +1,7 @@
 var express = require('express');
 var app = express();
 var db = require('./db');
+var path = require('path');
 
 var OrgController = require('./org/OrgController');
 
@@ -13,6 +14,10 @@ app.get('/', function (req, res) {
   <p>POST /orgs/ Creates a new organization</p>
   <p>DELETE /orgs/{id} Deletes an organization from the database</p>
   <p>PATCH /orgs/{id} Updates a single organization in the database</p>`)
+});
+
+app.get('/trib', function (reg, res) {
+  res.sendFile(path.join(__dirname+'/chicagotribune.html'));
 });
 
 app.use('/orgs', OrgController);

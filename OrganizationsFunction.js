@@ -32,59 +32,44 @@ exports.handler = (event, context, callback) => {
         "nextModule": null // OPTIONAL: the ID of a module to follow this Node JS module
     }
 
-    // responseJSON.response = "Here are nearby organizations working to " + customVars.campaign + ". Click on any of them to learn more.";
-    responseJSON.response = "Here are nearby organizations.";
     var regex = new RegExp('[ ,]+', 'g');
     var location = String(JSON.parse(event.customVars).location).split(regex);
-    var zip = location[location.length-2];
+    var zip = location[location.length - 2];
     var url = "http://public-knight.herokuapp.com/orgs/zip/" + zip + "/10/tag/" + JSON.parse(event.customVars).tag;
     console.log(url);
     request(url, function (error, response, body) {
         if (error) responseJSON.response("There was a problem finding nearby orgniazations.");
         var orgs = JSON.parse(body);
-        for (var i = 0; i < orgs.length; i++) {
+        // for (var i = 0; i < orgs.length; i++) {
+        //     responseJSON.cards.push({
+        //         cardTitle: orgs[i].org_name, // Card Title
+        //         cardSubtitle: orgs[i].mission.substr(0, 75) + "...", // Card Subtitle
+        //         cardImage: orgs[i].avatar_image_url, // Source URL for image
+        //         cardLink: 'https://publicgood.com/org/' + orgs[i].org_slug, // Click through URL
+        //         buttons: [{
+        //             buttonText: 'Check them out', // Button Call to Action
+        //             buttonType: 'url',
+        //             target: 'https://publicgood.com/org/' + orgs[i].org_slug// Text to send to bot, or URL
+        //         }]
+        //     });
+        // }
+        if (orgs.length !== 0) {
+            responseJSON.response = "We found " + orgs.length + " organizations working to make an impact in your community. Here is one we think you might be interested in.";
+            var rand = orgs[Math.floor(Math.random() * orgs.length)];
             responseJSON.cards.push({
-                cardTitle: orgs[i].org_name, // Card Title
-                cardSubtitle: orgs[i].mission.substr(0, 50) + "...", // Card Subtitle
-                cardImage: orgs[i].avatar_image_url, // Source URL for image
-                cardLink: 'https://publicgood.com/org/' + orgs[i].org_slug, // Click through URL
+                cardTitle: rand.org_name, // Card Title
+                cardSubtitle: rand.mission.substr(0, 75) + "...", // Card Subtitle
+                cardImage: rand.avatar_image_url, // Source URL for image
+                cardLink: 'https://publicgood.com/org/' + rand.org_slug, // Click through URL
                 buttons: [{
                     buttonText: 'Check them out', // Button Call to Action
-                    buttonType: 'module',
-                    target: 'https://publicgood.com/org/' + orgs[i].org_slug// Text to send to bot, or URL
+                    buttonType: 'url',
+                    target: 'https://publicgood.com/org/' + rand.org_slug// Text to send to bot, or URL
                 }]
             });
+        } else {
+            responseJSON.response = "Sorry, it doesn't look like we found any organizations in your community.";
         }
         callback(null, responseJSON);
     });
-
-    // responseJSON.cards = [
-    //     // Card 1
-    //     {
-    //         cardTitle: 'Chicago Public Education Fund', // Card Title
-    //         cardSubtitle: 'Increase community investment and act as a catalyst in improving Chicago schools.', // Card Subtitle
-    //         cardImage: 'http://peoplestribune.org/pt-news/wp-content/uploads/2014/08/pt.2014.09.04_education.jpg', // Source URL for image
-    //         cardLink: 'https://www.thefundchicago.org', // Click through URL
-    //         buttons: [{
-    //             buttonText: 'Check out website', // Button Call to Action
-    //             buttonType: 'module',
-    //             target: 'This will get sent to the bot'// Text to send to bot, or URL
-    //         }]
-    //     },
-    //     // Card 2
-    //     {
-    //         cardTitle: 'SOS Children Village',
-    //         cardSubtitle: 'Care, education & health services provided to 2.2 million at-risk children and adults in 133 territories.',
-    //         cardImage: 'http://www.cfegrants.org/wp-content/gallery/files/2012/02/About_2.png',
-    //         cardLink: 'https://www.sosillinois.org/',
-    //         buttons: [{
-    //             buttonText: 'Check out website',
-    //             buttonType: 'module',
-    //             target: 'This will get sent to the bot',
-    //         }]
-    //     }
-    // ]
-
-    // callback to return data to Motion AI (must exist, or bot will not work)
-    // callback(null, responseJSON);
 };

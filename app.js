@@ -17,7 +17,7 @@ app.get('/', function (req, res) {
 });
 
 app.get('/trib', function (reg, res) {
-  res.sendFile(path.join(__dirname+'/chicagotribune.html'));
+  res.sendFile(path.join(__dirname+'/trib.html'));
 });
 
 app.use('/orgs', OrgController);

@@ -54,29 +54,33 @@ exports.handler = (event, context, callback) => {
         //     });
         // }
         if (orgs.length !== 0) {
-            responseJSON.response = "We found " + orgs.length + " organizations working to make an impact in your community. Here is one we think you might be interested in.";
             var randa = [];
-            // Gets 3 random numbers
-            while (randa.length < 3) {
-                var randi = Math.floor(Math.random() * orgs.length);
-                if (randa.indexOf(randi) == -1) {
-                    randa.push(randi);
+            if (orgs.length > 3) {
+                while (randa.length < 3) {
+                    var randi = Math.floor(Math.random() * orgs.length);
+                    if (randa.indexOf(randi) == -1) {
+                        randa.push(randi);
+                    }
                 }
+                responseJSON.response = "We found " + orgs.length + " organizations working to make an impact in your community. Here are three we think you might be interested in.";
+            } else {
+                randa.push(0);
+                responseJSON.response = "We found " + orgs.length + " organizations working to make an impact in your community. Here is one we think you might be interested in.";
             }
+            
             //
-            // 
             for (var i = 0; i < randa.length; i++) {
                 responseJSON.cards.push({
-                cardTitle: orgs[randa[i]].org_name, // Card Title
-                cardSubtitle: orgs[randa[i]].mission.substr(0, 75) + "...", // Card Subtitle
-                cardImage: orgs[randa[i]].avatar_image_url, // Source URL for image
-                cardLink: 'https://publicgood.com/org/' + orgs[randa[i]].org_slug, // Click through URL
-                buttons: [{
-                    buttonText: 'Check them out', // Button Call to Action
-                    buttonType: 'url',
-                    target: 'https://publicgood.com/org/' + orgs[randa[i]].org_slug// Text to send to bot, or URL
-                }]
-            });
+                    cardTitle: orgs[randa[i]].org_name, // Card Title
+                    cardSubtitle: orgs[randa[i]].mission.substr(0, 75) + "...", // Card Subtitle
+                    cardImage: orgs[randa[i]].avatar_image_url, // Source URL for image
+                    cardLink: 'https://publicgood.com/org/' + orgs[randa[i]].org_slug, // Click through URL
+                    buttons: [{
+                        buttonText: 'Check them out', // Button Call to Action
+                        buttonType: 'url',
+                        target: 'https://publicgood.com/org/' + orgs[randa[i]].org_slug// Text to send to bot, or URL
+                    }]
+                });
             }
         } else {
             responseJSON.response = "Sorry, it doesn't look like we found any organizations in your community.";

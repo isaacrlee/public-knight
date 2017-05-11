@@ -88,8 +88,11 @@ router.get('/zip/:postal_code/:radius/tag/:input', function (req, res) {
     });
 
     console.log(tag_slug);
-
-    tag_slug = idx.search(req.params.input)[0].ref;
+    var results = idx.search(req.params.input);
+    if (results.length = 0) {
+        tag_slug = "education-2";
+    }
+    tag_slug = results[0].ref;
     //
 
     // requests from database

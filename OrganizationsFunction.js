@@ -35,7 +35,7 @@ exports.handler = (event, context, callback) => {
     var regex = new RegExp('[ ,]+', 'g');
     var location = String(JSON.parse(event.customVars).location).split(regex);
     var zip = location[location.length - 2];
-    var url = "http://public-knight.herokuapp.com/orgs/zip/" + zip + "/10/tag/" + JSON.parse(event.customVars).tag;
+    var url = "http://public-knight.herokuapp.com/orgs/zip/" + zip + "/50/tag/" + JSON.parse(event.customVars).tag;
     console.log(url);
     request(url, function (error, response, body) {
         if (error) responseJSON.response("There was a problem finding nearby orgniazations.");

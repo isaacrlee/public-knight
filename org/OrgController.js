@@ -34,6 +34,41 @@ router.get('/', function (req, res) {
     })
 });
 
+router.get('/tag/:tag_slug', function (req, res) {
+    var query = {
+        tag_slug: { $eq: req.params.tag_slug },
+        avatar_image_url: {
+            $exists: true
+        },
+        // },
+        mission: {
+            $ne: ""
+        }
+    };
+    Org.find(query, function (err, orgs) {
+        if (err) return res.status(500).send("There was a problem finding the organizations.");
+        if (orgs.length < 3) {
+            var query = {
+                tag_slug: { $eq: req.params.tag_slug },
+                // avatar_image_url: {
+                //     $exists: true
+                // }
+                // },
+                // mission: {
+                //     $ne: ""
+                // }
+            };
+            Org.find(query, function (err, orgs) {
+                if (err) return res.status(500).send("There was a problem finding the organizations.");
+                res.status(200).send(orgs)
+            });
+        }
+        else {
+            res.status(200).send(orgs)
+        }
+    });
+});
+
 // RETURNS ALL THE ORGANIZATIONS WITHIN RADIUS MILES OF ZIPCODE W/TAG IN THE DATABASE
 router.get('/zip/:postal_code/:radius/tag/:tag_slug', function (req, res) {
     // Creates URL for zipcodeapi

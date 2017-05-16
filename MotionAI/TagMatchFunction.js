@@ -31,8 +31,6 @@ exports.handler = (event, context, callback) => {
         "customVars": null, // OPTIONAL: an object or stringified object with key-value pairs to set custom variables eg: {"key":"value"} or '{"key":"value"}'
         "nextModule": null // OPTIONAL: the ID of a module to follow this Node JS module
     }
-    var tags = JSON.parse(customVars).tags.split(',');
-    var tag_slugs = JSON.parse(customVars).tag_slugs.split(',');
     console.log(tags);
     console.log(tag_slugs);
     var url = "http://public-knight.herokuapp.com/tag/" + event.reply;
@@ -43,11 +41,11 @@ exports.handler = (event, context, callback) => {
         
         if (d.valid === 1) {
             console.log(d);
-            responseJSON.response = "Cool! So you're interested in " + ;
-            responseJSON.customVars = {"tag_slug": d.tag_slug};
-            responseJSON.nextModule = 653473;
+            responseJSON.response = "Cool! So you're interested in " + d.tag + "?";
+            responseJSON.customVars = {"pot_tag": d.tag, "pot_tag_slug": d.tag_slug};
+            responseJSON.quickReplies = ["Yes", "No"];
         } else {
-            responseJSON.response = "Sorry, I don't seem to understand " + event.reply ".";
+            responseJSON.response = "Sorry, I don't seem to understand " + event.reply + ".";
             responseJSON.nextModule = 653483;
         }
         callback(null, responseJSON);

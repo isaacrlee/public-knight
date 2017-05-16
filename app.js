@@ -71,8 +71,12 @@ app.get('/tag/:input', function (req, res) {
 
   var results = idx.search(req.params.input + '~1 *' + req.params.input + ' ' + req.params.input + '*')
   if (results.length !== 0) {
-    j.tag = results[0].tag;
     j.tag_slug = results[0].ref;
+    for (var i = 0; i < tagArr.length; i++) {
+      if (tagArr[i].tag_slug === j.tag_slug) {
+        j.tag = tagArr[i].tag;
+      }
+    }
     j.valid = 1;
   }
   res.send(JSON.stringify(j));

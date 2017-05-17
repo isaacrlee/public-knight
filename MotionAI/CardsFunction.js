@@ -44,7 +44,7 @@ exports.handler = (event, context, callback) => {
                     count = orgs.length;
                 }
                 var randa = [];
-                randa.push(0);
+                randa.push(Math.floor(Math.random() * orgs.length));
                 for (var i = 0; i < randa.length; i++) {
                     responseJSON.cards.push({
                         cardTitle: orgs[randa[i]].org_name, // Card Title
@@ -67,7 +67,7 @@ exports.handler = (event, context, callback) => {
         if (responseJSON.cards.length === 0) {
             responseJSON.response = "Sorry, it doesn't look like we found any organizations in your community.";
         } else {
-            responseJSON.response = "We found over " + count + " organizations." + "Here are some we thing you'll be interested in."
+            responseJSON.response = "We found over " + count + " organizations." + " Here are some we think you'll be interested in."
         }
         callback(null, responseJSON);
     };

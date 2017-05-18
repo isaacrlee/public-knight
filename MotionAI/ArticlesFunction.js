@@ -32,40 +32,28 @@ exports.handler = (event, context, callback) => {
         "nextModule": null // OPTIONAL: the ID of a module to follow this Node JS module
     }
     var customVars = JSON.parse(event.customVars)
-    var quickReplies = [];
     var tags = String(customVars.tags).split(',');
     var tag_slugs = String(customVars.tag_slugs).split(',');
     var count = 0
-    if (Number(customVars.email) === 0) {
-        quickReplies.push("Email me a list of organizations!");
-    } else {
-        responseJSON.nextModule = 699584;
-    }
-    if (quickReplies.length > 0) {
-        responseJSON.quickReplies = quickReplies;
-    }
+    responseJSON.nextModule = 699584;
     var q = async.queue(function (task, done) {
         request(task.url, function (err, res, body) {
             if (err) return done(err);
             if (res.statusCode != 200) return done(res.statusCode);
-            var orgs = JSON.parse(body);
-            if (orgs.length !== 0) {
-                count += orgs.length;
-                var randa = [];
-                randa.push(Math.floor(Math.random() * orgs.length));
-                for (var i = 0; i < randa.length; i++) {
-                    responseJSON.cards.push({
-                        cardTitle: orgs[randa[i]].org_name, // Card Title
-                        cardSubtitle: orgs[randa[i]].mission.substr(0, 75) + "...", // Card Subtitle
-                        cardImage: orgs[randa[i]].avatar_image_url, // Source URL for image
-                        cardLink: 'https://publicgood.com/org/' + orgs[randa[i]].org_slug, // Click through URL
-                        buttons: [{
-                            buttonText: 'Check them out', // Button Call to Action
-                            buttonType: 'url',
-                            target: 'https://publicgood.com/org/' + orgs[randa[i]].org_slug// Text to send to bot, or URL
-                        }]
-                    });
-                }
+            var article = JSON.parse(body);
+            if (article.valid !== 0) {
+                count += 3;
+                responseJSON.cards.push({
+                    cardTitle: article.title, // Card Title
+                    cardSubtitle: article.summary, // Card Subtitle
+                    cardImage: article.image, // Source URL for image
+                    cardLink: article.url, // Click through URL
+                    buttons: [{
+                        buttonText: article.source, // Button Call to Action
+                        buttonType: 'url',
+                        target: article.url // Text to send to bot, or URL
+                    }]
+                });
             }
             done();
         });
@@ -73,14 +61,14 @@ exports.handler = (event, context, callback) => {
 
     q.drain = function () {
         if (responseJSON.cards.length === 0) {
-            responseJSON.response = "Sorry, it doesn't look like we found any organizations in your community.";
+            responseJSON.response = "Sorry, it doesn't look like we found any articles.";
         } else {
-            responseJSON.response = "We found over " + count + " organizations working to make an impact." + " Here are some we think you'll be interested in."
+            responseJSON.response = "We found over " + count + " articles related to causes you care about. Here is one we think you'll be interested in."
         }
         callback(null, responseJSON);
     };
 
-    for (var i = 0; i < tag_slugs.length; i++) {
-        q.push({ url: "http://public-knight.herokuapp.com/orgs/tag/" + tag_slugs[i] });
+    for (var i = 0; i < tags.length; i++) {
+        q.push({ url: "http://public-knight.herokuapp.com/pocket/" + encodeURI(tags[i]) });
     }
 };

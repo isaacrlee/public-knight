@@ -104,7 +104,8 @@ app.get('/pocket/:tag', function (req, res) {
         j.title = $('h3.title', content).text();
         j.image = $('article.item_article div.item_image').attr('data-thumburl');
         j.url = $('h3.title a').attr('data-saveurl');
-        j.summary = $('p.excerpt', content).text()
+        j.summary = $('p.excerpt', content).text();
+        j.valid = 1;
         res.send(JSON.stringify(j))
     }
   });

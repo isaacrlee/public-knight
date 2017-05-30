@@ -31,17 +31,17 @@ exports.handler = (event, context, callback) => {
         "customVars": null, // OPTIONAL: an object or stringified object with key-value pairs to set custom variables eg: {"key":"value"} or '{"key":"value"}'
         "nextModule": null // OPTIONAL: the ID of a module to follow this Node JS module
     }
-    var customVars = JSON.parse(event.customVars)
+    var customVars = JSON.parse(event.customVars);
     var tags = String(customVars.tags).split(',');
     var tag_slugs = String(customVars.tag_slugs).split(',');
     var count = 0
-    responseJSON.nextModule = 699584;
     var q = async.queue(function (task, done) {
         request(task.url, function (err, res, body) {
             if (err) return done(err);
             if (res.statusCode != 200) return done(res.statusCode);
             var article = JSON.parse(body);
-            if (article.valid !== 0) {
+            console.log(article.title);
+            if (Number(article.valid) !== 0) {
                 count += 3;
                 responseJSON.cards.push({
                     cardTitle: article.title, // Card Title
@@ -54,8 +54,10 @@ exports.handler = (event, context, callback) => {
                         target: article.url // Text to send to bot, or URL
                     }]
                 });
+                done();
+            } else {
+                done();
             }
-            done();
         });
     }, 5);
 
@@ -64,11 +66,9 @@ exports.handler = (event, context, callback) => {
             responseJSON.response = "Sorry, it doesn't look like we found any articles.";
         } else {
             responseJSON.response = "We found over " + count + " articles related to causes you care about. Here is one we think you'll be interested in."
+            // responseJSON.response = JSON.stringify(responseJSON.cards[0]);
         }
         callback(null, responseJSON);
     };
-
-    for (var i = 0; i < tags.length; i++) {
-        q.push({ url: "http://public-knight.herokuapp.com/pocket/" + encodeURI(tags[i]) });
-    }
+    q.push({ url: "http://public-knight.herokuapp.com/pocket/" + encodeURI(tags[tags.length - 1]) });
 };

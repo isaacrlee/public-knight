@@ -20,34 +20,43 @@ exports.handler = (event, context, callback) => {
         }
     */
 
-    var request = require('request');
     // this is the object we will return to Motion AI in the callback
+    var async = require('async');
+    var request = require('request');
+    var customVars = JSON.parse(event.customVars);
+    var numMembers = 0;
+    var numOrgs = 0;
+    var orgs;
+    var tags = String(customVars.tags).split(',');
+    var tag_slugs = String(customVars.tag_slugs).split(',');
     var responseJSON = {
-        "response": "", // what the bot will respond with
+        "response": "Great!", // what the bot will respond with
         "continue": true, // "true" will result in Motion AI continuing the flow based on connections, whie "false" will make Motion AI hit this module again when the user replies
         "customPayload": "", // OPTIONAL: working data to examine in future calls to this function to keep track of state
         "quickReplies": null, // OPTIONAL: a JSON string array containing suggested/quick replies to display to the user .. i.e., ["Hello","World"]
-        "cards": [], // OPTIONAL: a cards JSON object to display a carousel to the user (see docs)
+        "cards": null, // OPTIONAL: a cards JSON object to display a carousel to the user (see docs)
         "customVars": null, // OPTIONAL: an object or stringified object with key-value pairs to set custom variables eg: {"key":"value"} or '{"key":"value"}'
         "nextModule": null // OPTIONAL: the ID of a module to follow this Node JS module
     }
-    console.log(tags);
-    console.log(tag_slugs);
-    var url = "http://public-knight.herokuapp.com/tag/" + event.reply;
-    request(url, function (error, response, body) {
-        if (error) responseJSON.response("There was a problem.");
-        console.log(body);
-        var d = JSON.parse(body);
-        
-        if (d.valid === 1) {
-            console.log(d);
-            responseJSON.response = "Cool! So you're interested in " + d.tag + "?";
-            responseJSON.customVars = {"pot_tag": d.tag, "pot_tag_slug": d.tag_slug};
-            responseJSON.quickReplies = ["Yes", "No"];
-        } else {
-            responseJSON.response = "Sorry, I don't seem to understand " + event.reply + ".";
-            responseJSON.nextModule = 653483;
-        }
+
+    var q = async.queue(function (task, done) {
+        request(task.url, function (err, res, body) {
+            if (err) return done(err);
+            if (res.statusCode != 200) return done(res.statusCode);
+            
+            orgs = JSON.parse(body);
+            numMembers += Math.floor((Math.random() + 1) * orgs.length) * 1000;
+            numOrgs += orgs.length;
+            done();
+        });
+    }, 5);
+
+    q.drain = function () {
+        responseJSON.customVars = {"numMembers": numMembers, "numOrgs": numOrgs};
         callback(null, responseJSON);
-    });
+    };
+
+    for (var i = 0; i < tag_slugs.length; i++) {
+        q.push({ url: "http://public-knight.herokuapp.com/orgs/tag/" + tag_slugs[i] });
+    }
 };

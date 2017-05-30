@@ -22,6 +22,12 @@ exports.handler = (event, context, callback) => {
     // this is the object we will return to Motion AI in the callback
     var async = require('async');
     var request = require('request');
+    var customVars = JSON.parse(event.customVars);
+    var orgs;
+    var randi = -1;
+    var q;
+    var tags = String(customVars.tags).split(',');
+    var tag_slugs = String(customVars.tag_slugs).split(',');
     var responseJSON = {
         "response": "", // what the bot will respond with
         "continue": true, // "true" will result in Motion AI continuing the flow based on connections, whie "false" will make Motion AI hit this module again when the user replies
@@ -31,56 +37,49 @@ exports.handler = (event, context, callback) => {
         "customVars": null, // OPTIONAL: an object or stringified object with key-value pairs to set custom variables eg: {"key":"value"} or '{"key":"value"}'
         "nextModule": null // OPTIONAL: the ID of a module to follow this Node JS module
     }
-    var customVars = JSON.parse(event.customVars)
-    var quickReplies = [];
-    var tags = String(customVars.tags).split(',');
-    var tag_slugs = String(customVars.tag_slugs).split(',');
-    var count = 0
-    if (Number(customVars.email) === 0) {
-        quickReplies.push("Email me a list of organizations!");
-    } else {
-        responseJSON.nextModule = 699584;
-    }
-    if (quickReplies.length > 0) {
-        responseJSON.quickReplies = quickReplies;
-    }
-    var q = async.queue(function (task, done) {
+    q = async.queue(function (task, done) {
         request(task.url, function (err, res, body) {
             if (err) return done(err);
             if (res.statusCode != 200) return done(res.statusCode);
-            var orgs = JSON.parse(body);
+
+            orgs = JSON.parse(body);
             if (orgs.length !== 0) {
-                count += orgs.length;
-                var randa = [];
-                randa.push(Math.floor(Math.random() * orgs.length));
-                for (var i = 0; i < randa.length; i++) {
-                    responseJSON.cards.push({
-                        cardTitle: orgs[randa[i]].org_name, // Card Title
-                        cardSubtitle: orgs[randa[i]].mission.substr(0, 75) + "...", // Card Subtitle
-                        cardImage: orgs[randa[i]].avatar_image_url, // Source URL for image
-                        cardLink: 'https://publicgood.com/org/' + orgs[randa[i]].org_slug, // Click through URL
-                        buttons: [{
-                            buttonText: 'Check them out', // Button Call to Action
-                            buttonType: 'url',
-                            target: 'https://publicgood.com/org/' + orgs[randa[i]].org_slug// Text to send to bot, or URL
-                        }]
-                    });
-                }
+                randi = Math.floor(Math.random() * orgs.length);
+                responseJSON.cards.push({
+                    cardTitle: orgs[randi].org_name, // Card Title
+                    cardSubtitle: orgs[randi].mission.substr(0, 75) + "...", // Card Subtitle
+                    cardImage: orgs[randi].avatar_image_url, // Source URL for image
+                    cardLink: 'https://publicgood.com/org/' + orgs[randi].org_slug, // Click through URL
+                    buttons: [{
+                        buttonText: 'Check them out', // Button Call to Action
+                        buttonType: 'url',
+                        target: 'https://publicgood.com/org/' + orgs[randi].org_slug// Text to send to bot, or URL
+                    }]
+                });
             }
             done();
         });
     }, 5);
 
     q.drain = function () {
-        if (responseJSON.cards.length === 0) {
-            responseJSON.response = "Sorry, it doesn't look like we found any organizations in your community.";
+        if (customVars.location === 1) {
+            customVars.numOrgs /= 2;
+            responseJSON.customVars = {"numOrgs": customVars.numOrgs};
+            if (responseJSON.cards.length === 0) {
+                responseJSON.response = "Sorry, it doesn't look like we found any organizations in your community.";
+            } else {
+                responseJSON.response = "We found over " + customVars.numOrgs + " organizations working to make an impact near you. Here’s one local campaign you can participate in now:"
+            }
         } else {
-            responseJSON.response = "We found over " + count + " organizations working to make an impact." + " Here are some we think you'll be interested in."
+            if (responseJSON.cards.length === 0) {
+                responseJSON.response = "Sorry, it doesn't look like we found any organizations related to your causes.";
+            } else {
+                responseJSON.response = "We found over " + customVars.numOrgs + " organizations working to make an impact near you. Here’s one local campaign you can participate in now:"
+            }
         }
         callback(null, responseJSON);
     };
 
-    for (var i = 0; i < tag_slugs.length; i++) {
-        q.push({ url: "http://public-knight.herokuapp.com/orgs/tag/" + tag_slugs[i] });
-    }
+    q.push({ url: "http://public-knight.herokuapp.com/orgs/tag/" + tag_slugs[tag_slugs.length - 1] });
+    responseJSON.customVars = { "tag": tags[tags.length - 1] };
 };

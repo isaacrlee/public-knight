@@ -45,7 +45,7 @@ exports.handler = (event, context, callback) => {
             if (res.statusCode != 200) return done(res.statusCode);
             
             orgs = JSON.parse(body);
-            numMembers += Math.floor((Math.random() + 1) * orgs.length) * 1000;
+            numMembers += Math.floor((Math.random() + 1) * orgs.length) * 100;
             numOrgs += orgs.length;
             done();
         });

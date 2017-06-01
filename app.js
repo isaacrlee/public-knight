@@ -23,6 +23,14 @@ app.get('/trib', function (req, res) {
   res.sendFile(path.join(__dirname + '/trib.html'));
 });
 
+app.get('/v1', function (req, res) {
+  res.sendFile(path.join(__dirname + '/v1.html'));
+});
+
+app.get('/v2', function (req, res) {
+  res.sendFile(path.join(__dirname + '/v2.html'));
+});
+
 app.get('/tag/:input', function (req, res) {
   var tagArr = [{ "tag": "Animal Protection & Welfare", "tag_slug": "animal-protection-welfare-2", "synonyms": "animal, endangered, cruelty,  pets, dogs, cats, cat, dog, animal protection, animal welfare, animals, domesticated, animal cruelty, rabbit, wild, wildlife, lion, whale, elephant, panda, bear, fox, deer, snake, species, fish, planet" },
   { "tag": "Crime Prevention", "tag_slug": "crime-prevention-2", "synonyms": "crime, crime prevention, community safety, safety, murder, shooting, shot, death, robbery, theft, security, lost, lives, die, corruption" },
